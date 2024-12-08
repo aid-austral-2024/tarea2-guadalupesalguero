@@ -6,12 +6,11 @@ library(tidyr)
 
 
 # Importar las tablas
-data_academica_1 <- read_excel("../data_original/Analisis academico industrial 2001..2016.xlsx", skip = 4)
-data_academica_2 <- read_excel("../data_original/Analisis academico industrial 2016..2024.xlsx", skip = 4)
-alumnos <- read_excel("../data_original/Informacion Alumnos Industrial.xlsx", skip = 4)
+data_academica_1 <- read_excel("../data_original/Analisis academico 2001..2016.xlsx", skip = 4)
+data_academica_2 <- read_excel("../data_original/Analisis academico 2016..2024.xlsx", skip = 4)
+alumnos <- read_excel("../data_original/Informacion Alumnos.xlsx", skip = 4)
 
-# Cargar una funcion para hacer la limpieza de mis dos primeros dataset
-
+# Cargar una funcion para hacer la limpieza los primeros dataset
 procesar_dataset <- function(data) {
   
   # Pasar columnas a minuscula
@@ -35,7 +34,7 @@ procesar_dataset <- function(data) {
       especialidad_secundario = `nombre estudio`
     )
   
-  # Sacar las comillas de las fechas
+  # Sacar comillas de fechas
   data$examen_regular <- gsub("'", "", data$examen_regular)
   data$examen_ap_directa <- gsub("'", "", data$examen_ap_directa)
   
@@ -62,7 +61,6 @@ procesar_dataset <- function(data) {
        <= fecha_corte & nota_examen_reg >= 4) |
         (!is.na(nota_examen_ap) & !is.na(fecha_examen_ap) & fecha_examen_ap 
          <= fecha_corte & nota_examen_ap >= 4) ~ "Aprobado",
-      
       (!is.na(nota_examen_reg) & !is.na(fecha_examen_reg) & fecha_examen_reg 
        > fecha_corte & nota_examen_reg >= 6) |
         (!is.na(nota_examen_ap) & !is.na(fecha_examen_ap) & fecha_examen_ap 
@@ -70,9 +68,22 @@ procesar_dataset <- function(data) {
       TRUE ~ "No aprobado"
     ))
   
-  columnas <- c("legajo", "cod_materia", "nombre_materia", "recursa", "año", 
-                "estado", "fecha_examen_reg", "nota_examen_reg", "fecha_examen_ap",
-                "nota_examen_ap","cohorte", "aprobado")
+  # Unificar fechas y notas
+  data <- data %>%
+    mutate(
+      fecha_examen = ifelse(
+        is.na(fecha_examen_ap) & is.na(fecha_examen_reg), NA,
+        ifelse(is.na(fecha_examen_ap), format(fecha_examen_reg, "%Y-%m-%d"),
+               ifelse(is.na(fecha_examen_reg), format(fecha_examen_ap, "%Y-%m-%d"),
+                      paste(format(fecha_examen_ap, "%Y-%m-%d"), format(fecha_examen_reg, "%Y-%m-%d"), sep = " - "))))
+    )
+  
+  
+  # Seleccionar columnas relevantes
+  columnas <- c("legajo", "cod_materia", "especialidad", "nombre_carrera", 
+                "nombre_materia", "recursa", "año","estado", "fecha_examen", 
+                "fecha_examen_ap", "nota_examen_reg", "fecha_examen_ap",
+                "nota_examen_ap", "cohorte", "aprobado")
   
   data <- data %>%
     select(all_of(columnas))
@@ -110,28 +121,22 @@ alumnos <- alumnos %>%
     orientacion = orientación,
     nombre_carrera = `nombre del título`,
     cod_escuela = escuela,
-    nombre_escuela_Secundaria = nombre...16,
+    nombre_escuela_secundaria = nombre...16,
     especialidad_secundario = `nombre estudio`,
     cod_estado_titulo = `cod. est.`,
     estado_titulo = `estado título`,
     cod_postal = cod.pos.,
     cod_estado_alumno = estado,
     estado_alumno = nombre...24,
-    nombre_extension = `nombre extensión`,
-    fecha_asim_plan = `f. asim.`,
-    fecha_asim_plan_2023 = `fecha asimilación plan 2023`,
-    link_tramite_sube = `link teámite sube`,
-    fecha_tramite_sube = `inicio del tramite sube`,
-    respuesta_sube = `respuesta sube`,
-    tid_tram_sube_ministerio = `tid trámite ministerio`
+    nombre_extension = `nombre extensión`
   )
 
 
-columnas_alumnos <- c("legajo", "apellido_nombre", "sexo", "especialidad",
-                      "nombre_carrera", "plan", "anio_ingreso", "tipo_ingreso",
-                      "plan", "cod_escuela", "nombre_escuela_Secundaria",
-                      "especialidad_secundario", "estado_titulo", "cod_postal", 
-                      "ciudad","cod_estado_alumno","estado_alumno")             
+columnas_alumnos <- c("legajo", "apellido_nombre", "sexo",
+                      "plan", "anio_ingreso", "tipo_ingreso", "cod_escuela", 
+                      "nombre_escuela_secundaria", "especialidad_secundario", 
+                      "estado_titulo", "cod_postal", "ciudad",
+                      "cod_estado_alumno","estado_alumno")             
 
 alumnos <- alumnos %>%
   select(all_of(columnas_alumnos))
