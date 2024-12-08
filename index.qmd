@@ -1,0 +1,282 @@
+---
+title: "Analisis de estudiantes UTN FRSN"
+author: "Maria Guadalupe Salguero"
+date: today
+lang: es   
+warning: false
+format: 
+  html:
+    toc: true
+    fig-width: 8
+    fig-height: 4
+    code-fold: true
+    theme: journal
+editor: source
+---
+
+# Introducción
+
+El propósito de este informe es analizar los datos relacionados con estudiantes 
+y materias de la Facultad Regional San nicolás, con el objetivo de identificar 
+patrones, características y posibles áreas de mejora.
+En el presente informe es 
+Se utilizan dos tablas de Excel como 
+fuente de datos, que contienen información académica y administrativa. Este 
+informe sigue las etapas de selección, limpieza, exploración y comunicación, 
+detalladas a continuación.
+
+
+---
+
+## Materiales y Métodos
+
+### Datos
+
+Los datos se componen de dos tablas:
+
+1. **Tabla 1**: Información de estudiantes (identificación, datos personales, 
+estado académico).
+2. **Tabla 2**: Información de cursos y materias, incluyendo rendimiento, 
+estado de inscripción y resultados de exámenes.
+
+### Herramientas Utilizadas
+
+El análisis se realizó en R utilizando las siguientes librerías:
+
+```{r, message=FALSE}
+library(readxl)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(janitor)
+library(knitr)
+library(kableExtra)
+library(glue)
+
+```
+Procedimiento
+Selección:
+
+Se seleccionaron las tablas proporcionadas en formato Excel.
+Las tablas fueron importadas a R utilizando readxl.
+Limpieza:
+
+Se identificaron y corrigieron inconsistencias en nombres de columnas.
+Se unificaron formatos de datos (por ejemplo, fechas, nombres y codificaciones).
+Se eliminaron duplicados y valores inconsistentes.
+
+
+Resultados
+Carga y Limpieza de Datos
+
+```{r, message=FALSE}
+# Importar las tablas
+data<- read_delim("data_clean/data_combinada.csv", delim = ",")
+
+```
+
+  
+## Exploración General
+En este apartado se hara un analisis general de la especialidad a lo largo de los años.
+
+### Ingresantes por Año
+```{r Ingresantes por Año}
+# Agrupar ingresantes por cohorte y género
+ingresantes_anio_genero <- data %>%
+  distinct(legajo, cohorte, sexo) %>%
+  group_by(cohorte, sexo) %>%
+  summarise(total = n(), .groups = "drop")
+
+# Convertir la tabla a formato ancho con columnas por género y cohorte
+ingresantes_anio_genero_wide <- ingresantes_anio_genero %>%
+  pivot_wider(names_from = c(cohorte), values_from = total, values_fill = 0)
+
+# Mostrar la tabla
+kable(ingresantes_anio_genero_wide, caption = "Cantidad de Ingresantes por Género y Año (Columnas por Año)") %>%
+  kable_styling(full_width = FALSE, position = "right")
+
+# Gráfico para comparar por género
+ggplot(ingresantes_anio_genero, aes(x = cohorte, y = total, color = sexo, group = sexo)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "Ingresantes por Año y Género", x = "Cohorte", y = "Cantidad", color = "Género")
+```
+
+
+### Graduados por Año
+```{r Graduados por Año}
+# Agrupar graduados por cohorte y género
+graduados_anio_genero <- data %>%
+  filter(cod_materia == 550 & aprobado == "Aprobado") %>%
+  distinct(legajo, cohorte, sexo) %>%
+  group_by(cohorte, sexo) %>%
+  summarise(total = n(), .groups = "drop")
+
+# Convertir la tabla a formato ancho con columnas por género y cohorte
+graduados_anio_genero_wide <- graduados_anio_genero %>%
+  pivot_wider(names_from = c(cohorte), values_from = total, values_fill = 0)
+
+# Mostrar la tabla
+kable(graduados_anio_genero_wide, caption = "Cantidad de Graduados por Género y Año (Columnas por Año)") %>%
+  kable_styling(full_width = FALSE, position = "right")
+
+# Gráfico para comparar graduados por género
+ggplot(graduados_anio_genero, aes(x = cohorte, y = total, color = sexo, group = sexo)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "Graduados por Año y Género", x = "Cohorte", y = "Cantidad", color = "Género")
+```
+
+### Personas Activas por Año
+```{r Personas Activas por Año}
+personas_activas_genero <- data %>%
+  distinct(legajo, año, sexo) %>%
+  group_by(año, sexo) %>%
+  summarise(total = n(), .groups = "drop")
+
+# Convertir la tabla a formato ancho con columnas por género y cohorte
+personas_activas_genero_wide <- personas_activas_genero %>%
+  pivot_wider(names_from = c(año), values_from = total, values_fill = 0)
+
+# Mostrar la tabla con el título alineado a la izquierda
+kable(personas_activas_genero_wide, caption = "Cantidad de Personas Activas por Género y Año (Columnas por Año)") %>%
+  kable_styling(full_width = FALSE, position = "right")
+
+
+# Graficar personas activas por género
+ggplot(personas_activas_genero, aes(x = año, y = total, color = sexo, group = sexo)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "Personas Activas por Año y Género", x = "Año", y = "Cantidad", color = "Género")
+
+```
+
+### Distribución por género
+```{r Distribución por género}
+# Distribución por género
+distribucion_genero <- data %>%
+  distinct(legajo, sexo) %>%
+  group_by(sexo) %>%
+  summarise(total = n(), .groups = "drop")
+
+# Tabla
+kable(distribucion_genero, caption = "Distribución de Legajos por Género") %>%
+  kable_styling(full_width = FALSE)
+
+# Gráfico
+ggplot(distribucion_genero, aes(x = sexo, y = total, fill = sexo)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Distribución de Legajos por Género", x = "Género", y = "Cantidad")
+```
+
+### Distribución de Legajos por Tipo de Escuela Técnica
+```{r Distribución de Legajos por Tipo de Escuela Técnica}
+# Distribución por tipo de escuela técnica
+distribucion_escuela <- data %>%
+  distinct(legajo, especialidad_secundario) %>%
+  group_by(especialidad_secundario) %>%
+  summarise(total = n(), .groups = "drop") %>%
+  arrange(desc(total))
+
+# Tabla
+kable(distribucion_escuela, caption = "Distribución de Legajos por Tipo de Escuela Técnica") %>%
+  kable_styling(full_width = FALSE)
+
+# Gráfico
+ggplot(distribucion_escuela, aes(x = reorder(especialidad_secundario, -total), y = total)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Distribución de Legajos por Tipo de Escuela Técnica", x = "Escuela Técnica", y = "Cantidad")
+
+```
+### Distribución de Legajos por Estado
+```{r Distribución de Legajos por Estado}
+# Distribución por estado
+distribucion_estado <- data %>%
+  distinct(legajo, estado_alumno) %>%
+  group_by(estado_alumno) %>%
+  summarise(total = n(), .groups = "drop")
+
+# Tabla
+kable(distribucion_estado, caption = "Distribución de Legajos por Estado Académico") %>%
+  kable_styling(full_width = FALSE)
+
+# Gráfico
+ggplot(distribucion_estado, aes(x = estado_alumno, y = total, fill = estado_alumno)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Distribución de Legajos por Estado Académico", x = "Estado", y = "Cantidad")
+```
+
+## Año 2024
+### Cantidad de Legajos por Estado Académico
+```{r }
+# Filtro por el año 2024
+data_2024 <- data %>%
+  filter(año == 2024)
+
+# Resumen de estados en 2024
+estado_2024 <- data_2024 %>%
+  distinct(legajo, estado) %>%
+  group_by(estado) %>%
+  summarise(total = n(), .groups = "drop")
+
+# Tabla
+kable(estado_2024, caption = "Cantidad de Legajos por Estado Académico - 2024") %>%
+  kable_styling(full_width = FALSE)
+
+# Gráfico
+ggplot(estado_2024, aes(x = estado, y = total, fill = estado)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Cantidad de Legajos por Estado Académico - 2024", x = "Estado", y = "Cantidad")
+
+
+#Materias con Más Recursantes en 2024
+# Materias con más recursantes
+recursantes_2024 <- data_2024 %>%
+  filter(recursa == "Si") %>%
+  group_by(nombre_materia) %>%
+  summarise(total = n(), .groups = "drop") %>%
+  arrange(desc(total))
+
+# Tabla
+kable(recursantes_2024, caption = "Materias con Más Recursantes - 2024") %>%
+  kable_styling(full_width = FALSE)
+
+# Gráfico
+ggplot(recursantes_2024, aes(x = reorder(nombre_materia, total), y = total)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Materias con Más Recursantes - 2024", x = "Materia", y = "Cantidad")
+
+
+
+#Alumnos que Reprobaron en 2024 Tras Recursar
+# Alumnos que recursaron y reprobaron en 2024
+desaprobados_recursantes_2024 <- data_2024 %>%
+  filter(recursa == "Si" & aprobado == "No aprobado") %>%
+  distinct(legajo, nombre_materia)
+
+# Tabla
+kable(desaprobados_recursantes_2024, caption = "Alumnos que Reprobaron Tras Recursar - 2024") %>%
+  kable_styling(full_width = FALSE)
+
+
+```
+
+Conclusiones
+El análisis permitió identificar:
+
+Los estados académicos predominantes por especialidad y sexo.
+Los cursos más frecuentemente asociados con recursas.
+La necesidad de una mejor integración entre las tablas de estudiantes y materias para un análisis más robusto.
+Este informe destaca la importancia de un enfoque sistemático para la limpieza, exploración y comunicación de datos, utilizando herramientas reproducibles como R y Quarto.
+---
