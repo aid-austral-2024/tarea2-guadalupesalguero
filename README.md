@@ -105,3 +105,4 @@ source("codigo/generar_informes.R")
 ## Observaciones
 
 Este proyecto fue desarrollado como parte de la materia Análisis Inteligente de Datos. Los datos no son reales, son una imitacion de las fuentes de datos para mantener la confidencialidad.
+En general se trabajo con numeros de estudiantes y no porcentajes ya que es como lo solicitan desde los departamentos.
