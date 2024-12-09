@@ -116,7 +116,6 @@ Este proceso garantiza que los datos sean precisos, homogéneos y adecuados para
 
 Se realizó la carga de datos obtenidos en el archivo **`limpieza.R`**.
 
-
 ```{r, message=FALSE}
 
 # Cargar datos
@@ -128,9 +127,12 @@ data <- filter(data, especialidad == params$especialidad)
 
 # Exploración General
 
-En este apartado se hara un analisis general de la especialidad a lo largo de los años.
+En esta sección se presenta un análisis descriptivo general de la especialidad seleccionada, abordando tendencias clave como el número de ingresantes, graduados y estudiantes activos por año, así como distribuciones por género, tipo de escuela técnica y estado académico. Estos análisis proporcionan una visión integral del estado de la especialidad a lo largo de los años.
 
 ## Ingresantes por Año
+
+El análisis de ingresantes permite observar las tendencias en el número de estudiantes que se incorporan a la especialidad cada año, desglosado por género.
+
 ```{r Ingresantes por Año}
 # Agrupar ingresantes por cohorte y género
 ingresantes_anio_genero <- data %>%
@@ -154,7 +156,12 @@ ggplot(ingresantes_anio_genero, aes(x = cohorte, y = total, color = sexo, group 
   labs(title = "Ingresantes por Año y Género", x = "Cohorte", y = "Cantidad", color = "Género")
 ```
 
+La tabla resume la cantidad de ingresantes anuales, diferenciados por género. El gráfico de líneas facilita la comparación visual de las tendencias por género a lo largo de los años, identificando patrones de crecimiento, estabilidad o disminución.
+
 ### Graduados por Año
+
+Este análisis identifica la cantidad de estudiantes que completaron su formación en cada cohorte, desglosado por género. Se utiliza la materia con código 550 como indicador del estado de graduación.
+
 ```{r Graduados por Año}
 # Agrupar graduados por cohorte y género
 graduados_anio_genero <- data %>%
@@ -179,7 +186,12 @@ ggplot(graduados_anio_genero, aes(x = cohorte, y = total, color = sexo, group = 
   labs(title = "Graduados por Año y Género", x = "Cohorte", y = "Cantidad", color = "Género")
 ```
 
+Este análisis permite medir la eficiencia del proceso educativo y detectar posibles disparidades entre géneros. 
+
 ### Personas Activas por Año
+
+Se evalúa la cantidad de estudiantes que permanecen activos en la especialidad cada año, desglosado por género.
+
 ```{r Personas Activas por Año}
 personas_activas_genero <- data %>%
   distinct(legajo, año, sexo) %>%
@@ -204,7 +216,12 @@ ggplot(personas_activas_genero, aes(x = año, y = total, color = sexo, group = s
 
 ```
 
+Este análisis es crucial para identificar tasas de retención y detectar posibles puntos de fuga o abandono a lo largo de los años. Las tendencias divergentes entre géneros pueden revelar necesidades específicas de apoyo académico.
+
 ### Distribución por género
+
+Se analiza la composición general de la especialidad en términos de género.
+
 ```{r Distribución por género}
 # Distribución por género
 distribucion_genero <- data %>%
@@ -223,7 +240,12 @@ ggplot(distribucion_genero, aes(x = sexo, y = total, fill = sexo)) +
   labs(title = "Distribución de Legajos por Género", x = "Género", y = "Cantidad")
 ```
 
+Este análisis proporciona un indicador de inclusión y diversidad en la especialidad. Sabiendo que la Universidad tiene una política activa de equidad de género, este indicador permite evaluar el impacto de dichas iniciativas.
+
 ### Distribución de Legajos por Tipo de Escuela Técnica
+
+Este análisis examina el tipo de formación técnica de los estudiantes al ingresar a la especialidad.
+
 ```{r Distribución de Legajos por Tipo de Escuela Técnica}
 # Distribución por tipo de escuela técnica
 distribucion_escuela <- data %>%
@@ -245,7 +267,12 @@ ggplot(distribucion_escuela, aes(x = reorder(especialidad_secundario, -total), y
 
 ```
 
+Proporciona información sobre los antecedentes formativos de los estudiantes, lo que puede influir en su desempeño en materias específicas. La distribución desigual entre tipos de escuelas técnicas puede guiar estrategias de nivelación y apoyo.
+
 ### Distribución de Legajos por Estado
+
+Se presenta un desglose de los estados académicos de los estudiantes, como en curso, recursante o egresado.
+
 ```{r Distribución de Legajos por Estado}
 # Distribución por estado
 distribucion_estado <- data %>%
@@ -265,12 +292,16 @@ ggplot(distribucion_estado, aes(x = estado_alumno, y = total)) +
 
 ```
 
+Este análisis permite identificar cuántos estudiantes se encuentran en cada estado, proporcionando información clave sobre el progreso académico. 
+
 ------------------------------------------------------------------------
+
 # Análisis del Estado Académico - Año 2024
 
 ## Distribución de Estados Académicos
 
 Para el año 2024, se realizó un análisis de los estados académicos de los estudiantes. El objetivo principal es identificar la distribución de los estudiantes según su estado académico para evaluar el progreso general y detectar posibles áreas de atención.
+
 ```{r Año 2024 Distribución de Estados Académicos}
 # Filtrar por el año 2024
 data_2024 <- data %>%
@@ -292,10 +323,11 @@ ggplot(estado_2024, aes(x = estado, y = total)) +
   theme_minimal() +
   labs(title = "Cantidad de Legajos por Estado Académico - 2024", x = "Estado", y = "Cantidad")
 ```
-Este gráfico y tabla permiten visualizar la cantidad de estudiantes en cada estado académico, destacando posibles concentraciones en estados críticos (como rezagados o en riesgo de abandono).
 
+Este gráfico y tabla permiten visualizar la cantidad de estudiantes en cada estado académico, destacando posibles concentraciones en estados críticos (como libres o en riesgo de abandono).
 
 ## Materias con Mayor Cantidad de Recursantes
+
 Identificar las materias con mayor cantidad de recursantes es fundamental para comprender cuáles presentan mayor dificultad para los estudiantes y podrían requerir ajustes pedagógicos o metodológicos.
 
 ```{r Año 2024 Materias con Mayor Cantidad de Recursantes}
@@ -310,28 +342,98 @@ recursantes_2024 <- data_2024 %>%
 kable(recursantes_2024, caption = "Materias con Más Recursantes - 2024") %>%
   kable_styling(full_width = FALSE)
 
-# Gráfico
-ggplot(recursantes_2024, aes(x = reorder(nombre_materia, total), y = total)) +
+# 10 materias con más recursantes
+recursantes_top_10 <- recursantes_2024 %>%
+  slice_max(order_by = total, n = 10)
+
+# Tabla
+kable(recursantes_top_10, caption = "Top 10 Materias con Más Recursantes - 2024") %>%
+  kable_styling(full_width = FALSE)
+
+# Gráfico para las 10 primeras
+ggplot(recursantes_top_10, aes(x = reorder(nombre_materia, total), y = total)) +
   geom_bar(stat = "identity", fill = "blue") +
   coord_flip() +
   theme_minimal() +
-  labs(title = "Materias con Más Recursantes - 2024", x = "Materia", y = "Cantidad")
+  labs(
+    title = "Top 10 Materias con Más Recursantes - 2024",
+    x = "Materia",
+    y = "Cantidad"
+  )
 ```
+
 Las materias con mayor cantidad de recursantes son un indicador clave para evaluar áreas curriculares que podrían requerir intervenciones. Esto incluye revisiones en el diseño de las evaluaciones o apoyo adicional para los estudiantes.
 
 ## Desempeño de los Estudiantes Recursantes
-Se analizó el desempeño de los estudiantes que recursaron y reprobaron materias en 2024. Este grupo es particularmente relevante para entender barreras significativas en su progreso académico.
+
+Este punto esta orientado a las tutorias de cada especialidad donde hacen el seguimiento de los alumnos recursantes. Se analizó el desempeño de los estudiantes que recursaron y desaprobaron materias en 2024 para poder hacerle un seguimiento en el receso. 
+Este grupo es particularmente relevante para entender barreras significativas en su progreso académico.
 
 ```{r Año 2024 Desempeño de los Estudiantes Recursantes}
-# Alumnos que recursaron y reprobaron en 2024
-desaprobados_recursantes_2024 <- data_2024 %>%
+# Agrupar por materia 
+reprobados_por_materia <- data_2024 %>%
   filter(recursa == "Si" & aprobado == "No aprobado") %>%
-  distinct(legajo, nombre_materia)
+  group_by(nombre_materia) %>%
+  summarise(
+    legajos = paste(legajo, collapse = ", "), 
+    total = n(), 
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total))
 
 # Tabla
-kable(desaprobados_recursantes_2024, caption = "Alumnos que Reprobaron Tras Recursar - 2024") %>%
-  kable_styling(full_width = FALSE)
+kable(reprobados_por_materia, caption = "Materias con Legajos de Estudiantes que Reprobaron Tras Recursar - 2024") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
 ```
 
-# Conclusiones
+# Conclusión General del Análisis Académico
+
+El análisis realizado proporciona una visión integral sobre el estado académico de los estudiantes a lo largo de los años, con un enfoque específico en el año en curso.
+
+A continuación, se destacan los puntos más importantes a ser analizados por la especialidad:
+
+1.  ***Distribución General y Estados Académicos***
+
+    La distribución de estudiantes en diferentes estados académicos (como en curso, recursantes y egresados) permite identificar patrones clave en el progreso académico de la especialidad.
+
+    *Importancia:*
+
+    -   Los estudiantes en estados críticos representan una prioridad para la institución, ya que pueden impactar las tasas de retención y finalización.
+
+    -   Se recomienda implementar programas específicos de seguimiento y apoyo para estos grupos.
+
+2.  ***Ingresantes y Graduados por Año***
+
+    El análisis sobre ingresantes y graduados proporciona una evaluación de la eficiencia académica a lo largo de los años:
+
+    -   Ingresantes: Las tendencias anuales reflejan el atractivo de la especialidad y posibles fluctuaciones debido a factores externos (como políticas de admisión o promoción).
+    -   Graduados: Un aumento en la cantidad de graduados en los últimos años podría indicar mejoras en la gestión académica o en el acompañamiento estudiantil.
+
+    *Importancia:*
+
+    Identificar las cohortes con menor cantidad de graduados puede ayudar a diseñar estrategias específicas para mejorar la eficiencia académica.
+
+3.  ***Materias con Mayor Dificultad***
+
+    El análisis de materias con mayor cantidad de recursantes en 2024 identifica áreas curriculares que presentan desafíos significativos para los estudiantes. Estas materias pueden tener características particulares que dificulten su aprobación, como contenidos complejos, evaluaciones exigentes o métodos pedagógicos que no se alinean con las necesidades del estudiantado.
+
+    *Importancia:*
+
+    -   Revisar los programas y métodos de enseñanza en estas materias.
+
+    -   Implementar recursos adicionales, como tutorías, guías prácticas o espacios de consulta.
+
+    4\. ***Desempeño de los Estudiantes Recursantes***
+
+    El grupo de estudiantes que recursaron y reprobaron representa una población especialmente vulnerable dentro del sistema académico. Estos casos reflejan barreras significativas que afectan su progreso y requieren atención prioritaria.
+
+    *Importancia:*
+
+    -   Diseñar intervenciones específicas para estudiantes que recursan repetidamente, como diagnósticos tempranos, acompañamiento pedagógico o acceso a materiales de apoyo.
+
+    -   Evaluar si existen diferencias significativas entre grupos (como género o tipo de formación secundaria) para abordar desigualdades.
+
+    5\. ***Inclusión y Diversidad***
+
+    El análisis de la distribución por género destaca el compromiso de la institución con políticas de inclusión y equidad. Monitorear las proporciones de género a lo largo de los años es esencial para garantizar que estas políticas tengan un impacto positivo.
 

@@ -146,4 +146,10 @@ write.csv(alumnos, "../data_clean/data_alumnos.csv", row.names = FALSE)
 
 # Unir las tablas por legajo
 data_combinada <- left_join(data_academica, alumnos, by = "legajo")
+
+# Eliminar duplicados
+data_combinada <- data_combinada %>%
+  distinct()
+
+# Guardar el archivo limpio
 write.csv(data_combinada, "../data_clean/data_combinada.csv", row.names = FALSE)
