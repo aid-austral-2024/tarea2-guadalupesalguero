@@ -27,7 +27,7 @@ editor_options:
   chunk_output_type: console
 always_allow_html: true
 params:
-  especialidad: 24 ##"default"
+  especialidad: "default"
   nombre: nombre_especialidad
 ---
 
